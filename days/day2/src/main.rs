@@ -4,25 +4,32 @@ use nom::combinator::{eof, map};
 use nom::multi::many0;
 use nom::IResult;
 use std::cmp::Ordering;
-use Rps::*;
+use RpsLdw::*;
 
-#[derive(Eq, PartialEq, Debug)]
-pub enum Rps {
-    Rock,
-    Paper,
-    Scissors,
+#[derive(Eq, PartialEq, Debug, Copy, Clone)]
+pub enum RpsLdw {
+    RL,
+    PD,
+    SW,
 }
 
 fn main() {
     let i = include_str!("../input.txt");
     let v = parse_file(i).unwrap().1;
 
-    let score = v
+    let score1 = v
+        .iter()
+        .cloned()
+        .map(|(o, s)| win_score(s.cmp(&o)) + s.score())
+        .sum::<u64>();
+    let score2 = v
         .into_iter()
+        .map(|(o, s)| (o, wl_tranform(o, s)))
         .map(|(o, s)| win_score(s.cmp(&o)) + s.score())
         .sum::<u64>();
 
-    println!("{}", score);
+    println!("{}", score1);
+    println!("{}", score2);
 }
 
 fn win_score(ord: Ordering) -> u64 {
@@ -33,11 +40,26 @@ fn win_score(ord: Ordering) -> u64 {
     }
 }
 
-fn parse_file(i: &str) -> IResult<&str, Vec<(Rps, Rps)>> {
+fn wl_tranform(op: RpsLdw, ldw: RpsLdw) -> RpsLdw {
+    match (op, ldw) {
+        (x, PD) => x,
+
+        (RL, SW) => PD,
+        (RL, RL) => SW,
+
+        (PD, SW) => SW,
+        (PD, RL) => RL,
+
+        (SW, SW) => RL,
+        (SW, RL) => PD,
+    }
+}
+
+fn parse_file(i: &str) -> IResult<&str, Vec<(RpsLdw, RpsLdw)>> {
     many0(parse_line)(i)
 }
 
-fn parse_line(i: &str) -> IResult<&str, (Rps, Rps)> {
+fn parse_line(i: &str) -> IResult<&str, (RpsLdw, RpsLdw)> {
     let (i, f) = parse_rps(i)?;
     let (i, _) = space1(i)?;
     let (i, s) = parse_rps(i)?;
@@ -46,41 +68,41 @@ fn parse_line(i: &str) -> IResult<&str, (Rps, Rps)> {
     Ok((i, (f, s)))
 }
 
-fn parse_rps(i: &str) -> IResult<&str, Rps> {
+fn parse_rps(i: &str) -> IResult<&str, RpsLdw> {
     alt((
-        map(one_of("AX"), |_| Rock),
-        map(one_of("BY"), |_| Paper),
-        map(one_of("CZ"), |_| Scissors),
+        map(one_of("AX"), |_| RL),
+        map(one_of("BY"), |_| PD),
+        map(one_of("CZ"), |_| SW),
     ))(i)
 }
 
-impl Rps {
+impl RpsLdw {
     pub fn score(&self) -> u64 {
         match self {
-            Rock => 1,
-            Paper => 2,
-            Scissors => 3,
+            RL => 1,
+            PD => 2,
+            SW => 3,
         }
     }
 }
 
-impl Ord for Rps {
+impl Ord for RpsLdw {
     fn cmp(&self, other: &Self) -> Ordering {
         self.partial_cmp(other).unwrap()
     }
 }
 
-impl PartialOrd for Rps {
+impl PartialOrd for RpsLdw {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(match (self, other) {
-            (Paper, Rock) => Ordering::Greater,
-            (Rock, Paper) => Ordering::Less,
+            (PD, RL) => Ordering::Greater,
+            (RL, PD) => Ordering::Less,
 
-            (Scissors, Paper) => Ordering::Greater,
-            (Paper, Scissors) => Ordering::Less,
+            (SW, PD) => Ordering::Greater,
+            (PD, SW) => Ordering::Less,
 
-            (Rock, Scissors) => Ordering::Greater,
-            (Scissors, Rock) => Ordering::Less,
+            (RL, SW) => Ordering::Greater,
+            (SW, RL) => Ordering::Less,
 
             _ => Ordering::Equal,
         })
