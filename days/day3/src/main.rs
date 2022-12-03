@@ -1,20 +1,32 @@
 #![feature(hash_drain_filter)]
 
-use std::collections::HashMap;
 use itertools::Itertools;
+use std::collections::HashMap;
 
 fn main() {
     let input = include_str!("../input.txt");
 
-    let mut acc = 0;
+    let p1 = input
+        .lines()
+        .map(|l| {
+            let s = l.len() / 2;
+            [&l[..s], &l[s..]]
+        })
+        .map(|p| find_shared(&p[..]))
+        .map(prio)
+        .sum::<u32>();
 
-    for (l1, l2, l3) in input.lines().tuples() {
-        acc += prio(find_shared(&[l1, l2, l3]));
-    }
+    let p2 = input
+        .lines()
+        .tuples()
+        .map(|(l1, l2, l3)| [l1, l2, l3])
+        .map(|p| find_shared(&p[..]))
+        .map(prio)
+        .sum::<u32>();
 
-    println!("{}", acc);
+    println!("p1: {}", p1);
+    println!("p2: {}", p2);
 }
-
 
 fn find_shared(input: &[&str]) -> char {
     let mut hm = HashMap::new();
