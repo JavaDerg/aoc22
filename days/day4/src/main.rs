@@ -6,18 +6,32 @@ use nom::IResult;
 use std::ops::Range;
 
 fn main() {
-    let n = parse_file(include_str!("../input.txt"))
+    let e = parse_file(include_str!("../input.txt"))
         .unwrap()
-        .1
-        .into_iter()
-        .map(|(a, b)| overlaps(a, b))
+        .1;
+    let n1 = e.iter().cloned()
+        .map(|(a, b)| overlaps_exact(a, b))
+        .filter(|x| *x)
+        .count();
+    let n2 = e.iter().cloned()
+        .map(|(a, b)| overlaps_any(a, b))
         .filter(|x| *x)
         .count();
 
-    println!("{}", n);
+    println!("{}", n1);
+    println!("{}", n2);
 }
 
-fn overlaps(a: Range<u32>, b: Range<u32>) -> bool {
+fn overlaps_any(a: Range<u32>, b: Range<u32>) -> bool {
+    let (a, al) = bits(a);
+    let (b, bl) = bits(b);
+
+    let r = a & b;
+
+    r.count_ones() != 0
+}
+
+fn overlaps_exact(a: Range<u32>, b: Range<u32>) -> bool {
     let (a, al) = bits(a);
     let (b, bl) = bits(b);
 
