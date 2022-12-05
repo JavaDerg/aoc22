@@ -9,17 +9,32 @@ use nom::IResult;
 fn main() {
     let input = include_str!("../input.txt");
 
-    let (mut s, is) = parse_file(input).unwrap().1;
+    let (mut s1, is) = parse_file(input).unwrap().1;
+    let mut s2 = s1.clone();
 
-    for ((f, t), c) in is {
+    for ((f, t), c) in is.iter().cloned() {
         for _ in 0..c {
-            let cr = s[f as usize].pop().unwrap();
-            s[t as usize].push(cr);
+            let cr = s1[f as usize].pop().unwrap();
+            s1[t as usize].push(cr);
+        }
+    }
+    for ((f, t), c) in is.iter().cloned() {
+        let o = s2[f as usize].len() - c;
+        for _ in 0..c {
+            let cr = s2[f as usize].remove(o);
+            s2[t as usize].push(cr);
         }
     }
 
-    for i in 0..s.len() {
-        if let Some(c) = s[i].pop() {
+    for i in 0..s1.len() {
+        if let Some(c) = s1[i].pop() {
+            print!("{}", c);
+        }
+    }
+    println!();
+
+    for i in 0..s2.len() {
+        if let Some(c) = s2[i].pop() {
             print!("{}", c);
         }
     }
