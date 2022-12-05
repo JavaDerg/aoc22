@@ -99,7 +99,9 @@ fn parse_row(i: &str) -> IResult<&str, Vec<Option<char>>> {
 
 fn parse_row_index(i: &str) -> IResult<&str, usize> {
     terminated(
-        map(many1(tuple((opt(space1), digit1, opt(space1)))), |x| x.len()),
+        map(many1(tuple((opt(space1), digit1, opt(space1)))), |x| {
+            x.len()
+        }),
         line_ending,
     )(i)
 }
