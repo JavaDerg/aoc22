@@ -40,18 +40,23 @@ fn main() {
         }
     }
 
-    let mut sum = 0;
+    let required = 40_000_000u64;
+    let a_size = tree.iter().filter_map(|(_, v)| *v).sum::<u64>();
+
+    println!("{}", a_size);
+
+    let mut smallest_fit = ("/".to_string(), a_size);
 
     for (k, _) in tree.iter().filter(|(_, v)| v.is_none()) {
         let size = tree.range(k.clone()..=format!("{k}{}", char::MAX)).filter_map(|(_, x)| *x).sum::<u64>();
-        if size > 100000 {
-            continue;
+        // println!("{k:50}\t{}\t{}", a_size + size, required - size);
+        if size < smallest_fit.1 && a_size - size <= required {
+            smallest_fit = (k.clone(), size);
+            println!("{:?}", smallest_fit);
         }
-
-        sum += size;
     }
 
-    println!("{sum}");
+    println!("{smallest_fit:?}");
 }
 
 fn pathify(v: &[String]) -> String {
